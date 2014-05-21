@@ -11,18 +11,6 @@ from LCD_controller import LCDController
 import temp_sensor
 import interface
 
-# wait until server is running before checking files
-checker = True
-while checker:
-        try:
-                data = urllib2.urlopen('http://localhost:3000/checkOk')
-                if data.read() == 'ok':
-                        checker = False                
-        except :
-                print "hello"
-                time.sleep(10)
-
-
 # Set pin numbering scheme
 GPIO.setmode(GPIO.BCM)
 
@@ -78,6 +66,17 @@ rooms = [room_1,room_2,room_3,room_4]
 
 #setup LCD for outside temperature display
 OUTSIDE_LCD = LCDController(OUTSIDE_LCD_E)
+
+
+# wait until server is running before running main code.
+checker = True
+while checker:
+        try:
+                data = urllib2.urlopen('http://localhost:3000/checkOk')
+                if data.read() == 'ok':
+                        checker = False                
+        except :
+                time.sleep(10)
 
 def main():
     # read all temperature sensors
