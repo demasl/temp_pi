@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #__author__ = 'Michael Lynch'
 # Servo Control
 import RPi.GPIO as GPIO

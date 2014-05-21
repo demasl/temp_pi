@@ -1,12 +1,27 @@
+#!/usr/bin/env python
+
 # import libraries
 import RPi.GPIO as GPIO
 import time
+import urllib2
 
 # import user files
 from room_controller import RoomController
 from LCD_controller import LCDController
 import temp_sensor
 import interface
+
+# wait until server is running before checking files
+checker = True
+while checker:
+        try:
+                data = urllib2.urlopen('http://localhost:3000/checkOk')
+                if data.read() == 'ok':
+                        checker = False                
+        except :
+                print "hello"
+                time.sleep(10)
+
 
 # Set pin numbering scheme
 GPIO.setmode(GPIO.BCM)
@@ -36,13 +51,30 @@ ROOM_2_SERVO_S = 14
 ROOM_2_LIGHT_E = 22
 ROOM_2_SENSOR = "4bd4c02"
 
+#Room 3 Constants
+ROOM_3_NO = 3
+ROOM_3_NAME = "Bedroom 1"
+ROOM_3_LCD_E = 30
+ROOM_3_SERVO_S = 11
+ROOM_3_LIGHT_E = 27
+ROOM_3_SENSOR = "4bcab8e"
+
+#Room 4 Constants
+ROOM_4_NO = 4
+ROOM_4_NAME = "Bedroom 2"
+ROOM_4_LCD_E = 29
+ROOM_4_SERVO_S = 9
+ROOM_4_LIGHT_E = 17
+ROOM_4_SENSOR = "4bd7551"
 
 # create room objects
 room_1 = RoomController(ROOM_1_NO,ROOM_1_NAME,ROOM_1_SERVO_S,ROOM_1_LIGHT_E,ROOM_1_LCD_E,ROOM_1_SENSOR)
 room_2 = RoomController(ROOM_2_NO,ROOM_2_NAME,ROOM_2_SERVO_S,ROOM_2_LIGHT_E,ROOM_2_LCD_E,ROOM_2_SENSOR)
+room_3 = RoomController(ROOM_3_NO,ROOM_3_NAME,ROOM_3_SERVO_S,ROOM_3_LIGHT_E,ROOM_3_LCD_E,ROOM_3_SENSOR)
+room_4 = RoomController(ROOM_4_NO,ROOM_4_NAME,ROOM_4_SERVO_S,ROOM_4_LIGHT_E,ROOM_4_LCD_E,ROOM_4_SENSOR)
 
 # add room objects to list
-rooms = [room_1,room_2]
+rooms = [room_1,room_2,room_3,room_4]
 
 #setup LCD for outside temperature display
 OUTSIDE_LCD = LCDController(OUTSIDE_LCD_E)
