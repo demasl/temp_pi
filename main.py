@@ -17,11 +17,11 @@ GPIO.setmode(GPIO.BCM)
 # Set time between readings (in seconds)
 TIME_INTERVAL = 5
 
-#Constants for outside temperature
-OUTSIDE_NO = 5
-OUTSIDE_NAME = "Outside"
-OUTSIDE_LCD_E = 31
-OUTSIDE_SENSOR = "4bc1bef"
+#Constants for External temperature
+EXTERNAL_NO = 5
+EXTERNAL_NAME = "External"
+EXTERNAL_LCD_E = 31
+EXTERNAL_SENSOR = "4bc1bef"
 
 #Room 1 Constants
 ROOM_1_NO = 1
@@ -64,30 +64,33 @@ room_4 = RoomController(ROOM_4_NO,ROOM_4_NAME,ROOM_4_SERVO_S,ROOM_4_LIGHT_E,ROOM
 # add room objects to list
 rooms = [room_1,room_2,room_3,room_4]
 
-#setup LCD for outside temperature display
-OUTSIDE_LCD = LCDController(OUTSIDE_LCD_E)
+#setup LCD for external temperature display
+EXTERNAL_LCD = LCDController(EXTERNAL_LCD_E)
 
+# other constants
+INIT_MESSAGE = "Initialising"
+SER_MESSAGE = "Server Running"
+DOT = "."
 
-# wait until server is running before running main code.
-checker = True
-while checker:
+# checks if server is accessable
+def checker():
         try:
                 data = urllib2.urlopen('http://localhost:3000/checkOk')
                 if data.read() == 'ok':
-                        checker = False                
+                        return False                
         except :
-                time.sleep(10)
-
+                return True
+# main funstion
 def main():
     # read all temperature sensors
     temps = temp_sensor.read_all()
     # send readings to server
-    interface.logTemps(OUTSIDE_NO,temps[OUTSIDE_SENSOR])
+    interface.logTemps(EXTERNAL_NO,temps[EXTERNAL_SENSOR])
     for room in rooms:
         interface.logTemps(room.get_room_no(),temps[room.get_sensor_id()])
         
-    #send data to LCD for outside temperature
-    OUTSIDE_LCD.lcd_display(OUTSIDE_NAME,"%.1f"%(temps[OUTSIDE_SENSOR]))
+    #send data to LCD for external temperature
+    EXTERNAL_LCD.lcd_display(EXTERNAL_NAME,"%.1f"%(temps[EXTERNAL_SENSOR]))
         
     # check temperature for each room and adjust light/servo as needed    
     for room in rooms:
@@ -97,8 +100,6 @@ def main():
         read_temp = int(round(temps[room.get_sensor_id()]))
         # update LCD display for room
         room.update_lcd(temps[room.get_sensor_id()])
-        #print(room.win_state())
-        #print("Room : %s, Set Temp : %d, Read Temp : %d"%(room.get_room_no(),set_temp,read_temp))
 
         # temp tolerence set to +-0.5 deg.
         # Example: Desired temp = 22, reading between 21.5 to 22.4 is deemed as equal to desired temp. 
@@ -123,10 +124,19 @@ def main():
                 room.win_open()
               
 try:
-    # loop until interuptted
-    while True:
-        main()
-        time.sleep(TIME_INTERVAL)
+        # Wait for server to initialise
+        EXTERNAL_LCD.lcd_display(INIT_MESSAGE," ")
+        counter = 0
+        while checker():
+                time.sleep(2)
+                EXTERNAL_LCD.lcd_display(INIT_MESSAGE+DOT*(counter%4)," ")
+                counter=counter+1
+                
+        EXTERNAL_LCD.lcd_display(SER_MESSAGE," ")
+        # loop until interuptted
+        while True:
+                main()
+                time.sleep(TIME_INTERVAL)
 except KeyboardInterrupt:
     # reset all GPIO pins
     GPIO.cleanup()
